@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoDial</title>
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #F0C040;
+  --gold-dark: #8B6914;
+  --bg: #0D0F14;
+  --bg2: #161920;
+  --bg3: #1E2128;
+  --text: #E8DCC8;
+  --text2: #A09070;
+  --green: #22C55E;
+  --red: #EF4444;
+  --blue: #4F8EF7;
+  --blue-dark: #2563EB;
+  --blue-glow: rgba(79,142,247,0.3);
+  --surface: #161920;
+  --surface2: #1E2128;
+  --border: rgba(255,255,255,0.08);
+  --border-active: rgba(79,142,247,0.4);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+  --shadow: none;
+  --font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  --gradient-green: linear-gradient(135deg, #16A34A, #15803D);
+  --gradient-red: linear-gradient(135deg, #DC2626, #B91C1C);
+  --gradient-blue: linear-gradient(135deg, #4F8EF7, #2563EB);
+  --glow-text: none;
+  --floatbar-bg: rgba(14,16,22,0.88);
+  --floatbar-border: rgba(79,142,247,0.22);
+  --floatbar-blur: blur(24px) saturate(180%);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-family);
+  overflow: visible;
+  user-select: none;
+}
+.float-bar {
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--floatbar-bg);
+  border: 1px solid var(--floatbar-border);
+  border-radius: var(--radius-lg);
+  padding: 0 8px 0 10px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter: var(--floatbar-blur);
+  -webkit-backdrop-filter: var(--floatbar-blur);
+  cursor: move;
+  user-select: none;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 70%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 70%, transparent 100%);
+}
+.float-bar:hover {
+  border-color: rgba(79,142,247,0.45);
+  box-shadow: 0 6px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(79,142,247,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.float-bar.dragging {
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6); opacity: 0.94;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+</style>
+
+<style>
+.fb-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 5px var(--red);
+  flex-shrink: 0;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.fb-dot.connecting {
+  background: #F59E0B;
+  box-shadow: 0 0 6px rgba(245,158,11,0.8);
+  animation: pulse 1s infinite;
+}
+.fb-dot.on {
+  background: var(--green);
+  box-shadow: 0 0 7px rgba(34,197,94,0.8);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+.fb-sep {
+  width: 1px; height: 18px;
+  background: rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  margin: 0 1px;
+}
+.fb-clear-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  padding: 3px 7px;
+  color: var(--text2);
+  font-size: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.fb-clear-btn:hover { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.4); color: var(--red); }
+.fb-clear-btn:active { transform: scale(0.95); }
+.fb-input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 4px 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  max-width: 140px;
+  outline: none;
+  letter-spacing: 1px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-variant-numeric: tabular-nums;
+}
+.fb-input::placeholder { color: var(--text2); font-size: 10px; font-weight: 400; letter-spacing: 0; }
+.fb-input:focus { border-color: rgba(79,142,247,0.5); box-shadow: 0 0 0 2px rgba(79,142,247,0.12); }
+.fb-dial-btn {
+  background: var(--gradient-blue);
+  border: none; border-radius: 10px;
+  padding: 4px 9px;
+  color: white; font-size: 11px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 3px;
+  box-shadow: 0 2px 8px rgba(79,142,247,0.25);
+}
+.fb-dial-btn:hover:not(:disabled) { filter: brightness(1.15); box-shadow: 0 3px 12px rgba(79,142,247,0.45); transform: scale(1.03); }
+.fb-dial-btn:active:not(:disabled) { transform: scale(0.97); }
+.fb-dial-btn:disabled { background: var(--surface2); color: var(--text2); cursor: default; opacity: 0.7; font-size: 10px; box-shadow: none; }
+.fb-hangup-btn {
+  background: var(--gradient-red);
+  border: none; border-radius: 10px;
+  padding: 4px 9px;
+  color: white; font-size: 11px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 3px;
+  box-shadow: 0 2px 8px rgba(239,68,68,0.2);
+}
+.fb-hangup-btn:hover:not(:disabled) { filter: brightness(1.15); box-shadow: 0 3px 12px rgba(239,68,68,0.4); transform: scale(1.03); }
+.fb-hangup-btn:active:not(:disabled) { transform: scale(0.97); }
+.fb-hangup-btn:disabled { background: var(--surface2); color: var(--text2); cursor: default; opacity: 0.7; font-size: 10px; box-shadow: none; }
+.fb-sms-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 4px 8px;
+  color: var(--text2);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 3px;
+}
+.fb-sms-btn:hover { background: rgba(79,142,247,0.1); border-color: rgba(79,142,247,0.4); color: var(--blue); }
+.fb-sms-btn:active { transform: scale(0.95); }
+/* 缩放手柄 */
+.fb-resize-handle {
+  position: absolute;
+  right: 2px; bottom: 2px;
+  width: 14px; height: 14px;
+  cursor: nwse-resize;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.fb-resize-handle::after {
+  content: '';
+  position: absolute;
+  bottom: 2px; right: 2px;
+  width: 7px; height: 7px;
+  border-right: 2px solid rgba(79,142,247,0.6);
+  border-bottom: 2px solid rgba(79,142,247,0.6);
+  border-radius: 0 0 2px 0;
+}
+.float-bar:hover .fb-resize-handle { opacity: 1; pointer-events: auto; }
+.toast {
+  position: fixed; top: -8px; left: 50%;
+  transform: translateX(-50%) translateY(-40px);
+  background: var(--floatbar-bg);
+  border: 1px solid var(--floatbar-border);
+  border-radius: var(--radius-md); padding: 6px 14px;
+  font-size: 11px; color: var(--text);
+  transition: transform 0.25s; z-index: 999; white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: var(--floatbar-blur);
+  -webkit-backdrop-filter: var(--floatbar-blur);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--green); color: var(--green); }
+.toast.error   { border-color: var(--red);   color: var(--red);   }
+/* 右键菜单 */
+.fb-context-menu {
+  position: fixed;
+  min-width: 160px;
+  background: var(--floatbar-bg);
+  border: 1px solid var(--floatbar-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter: var(--floatbar-blur);
+  -webkit-backdrop-filter: var(--floatbar-blur);
+  z-index: 100;
+  display: none;
+}
+.fb-context-menu.show { display: block; }
+.fb-menu-item {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+.fb-menu-item:first-child { border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.fb-menu-item:last-child { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+.fb-menu-item:hover { background: var(--surface2); }
+.fb-menu-item.fb-menu-danger { color: var(--red); }
+.fb-menu-item.fb-menu-danger:hover { background: rgba(239,68,68,0.1); }
+.fb-menu-sep { height: 1px; background: rgba(255,255,255,0.07); margin: 2px 8px; }
+</style>
+<script src="../themes/theme-data.js"></script>
+<script src="js/theme.js"></script>
+</head>
+<body>
+<div class="float-bar" id="floatBar">
+  <div class="fb-dot" id="fbDot"></div>
+  <div class="fb-sep"></div>
+  <button class="fb-clear-btn" id="fbClearBtn">✕</button>
+  <input type="text" class="fb-input" id="fbInput" placeholder="输入或复制号码..." inputmode="tel" autocomplete="off">
+  <div class="fb-sep"></div>
+  <button class="fb-dial-btn" id="fbDialBtn" disabled>
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    拨打
+  </button>
+  <button class="fb-hangup-btn" id="fbHangupBtn" disabled>
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    挂断
+  </button>
+  <button class="fb-sms-btn" id="fbSmsBtn">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    短信
+  </button>
+  <div class="fb-resize-handle" id="fbResizeHandle"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+if (typeof ThemeEngine !== 'undefined') ThemeEngine.initTheme();
+
+let isConnected = false;
+
+// ==================== 拖拽缩放（右下角手柄） ====================
+(function() {
+  const handle = document.getElementById('fbResizeHandle');
+  let resizing = false, startX = 0;
+  handle.addEventListener('mousedown', onDown);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  function onDown(e) { resizing = true; startX = e.clientX; e.preventDefault(); e.stopPropagation(); }
+  function onMove(e) {
+    if (!resizing) return;
+    const diff = e.clientX - startX;
+    const delta = Math.round(diff / 30);
+    if (delta !== 0) { window.api.send('floatbar-resize', delta); startX = e.clientX; }
+    e.preventDefault();
+  }
+  function onUp() { resizing = false; }
+})();
+
+// ==================== 拖拽 ====================
+(function() {
+  const bar = document.getElementById('floatBar');
+  let dragging = false, offsetX = 0, offsetY = 0;
+  bar.addEventListener('mousedown', onDown);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  function onDown(e) {
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SVG' || e.target.tagName === 'LINE' || e.target.tagName === 'PATH' || e.target.tagName === 'POLYLINE') return;
+    dragging = true;
+    bar.classList.add('dragging');
+    const rect = bar.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    e.preventDefault();
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    window.api.send('floatbar-move', { x: e.screenX - offsetX, y: e.screenY - offsetY });
+    e.preventDefault();
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    bar.classList.remove('dragging');
+  }
+})();
+
+// ==================== 按钮状态文字 ====================
+function updateDialBtnText() {
+  const btn = document.getElementById('fbDialBtn');
+  if (btn.disabled) {
+    btn.innerHTML = isConnected
+      ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 请输入'
+      : '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/></svg> 未连接';
+  } else {
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> 拨打';
+  }
+}
+function updateHangupBtnText() {
+  const btn = document.getElementById('fbHangupBtn');
+  if (btn.disabled) {
+    btn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/></svg> 未连接';
+  } else {
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> 挂断';
+  }
+}
+
+const dialBtn = document.getElementById('fbDialBtn');
+const hangupBtn = document.getElementById('fbHangupBtn');
+new MutationObserver(updateDialBtnText).observe(dialBtn, { attributes: true, attributeFilter: ['disabled'] });
+new MutationObserver(updateHangupBtnText).observe(hangupBtn, { attributes: true, attributeFilter: ['disabled'] });
+updateDialBtnText();
+updateHangupBtnText();
+
+// ==================== 按钮 ====================
+document.getElementById('fbClearBtn').addEventListener('click', clearNumber);
+document.getElementById('fbDialBtn').addEventListener('click', dialFromFloat);
+document.getElementById('fbHangupBtn').addEventListener('click', hangupFromFloat);
+document.getElementById('fbSmsBtn').addEventListener('click', () => { window.api.send('open-sms', ''); });
+document.getElementById('fbInput').addEventListener('input', function() {
+  document.getElementById('fbDialBtn').disabled = !(this.value.trim() && isConnected);
+});
+
+// ==================== 右键菜单 ====================
+(function() {
+  const bar = document.getElementById('floatBar');
+  bar.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const input = document.getElementById('fbInput');
+    const number = input ? input.value.trim() : '';
+    window.api.send('floatbar-context-menu', { x: e.screenX, y: e.screenY, number: number });
+  });
+})();
+
+// ==================== IPC 事件 ====================
+window.api.on('status-update', (data) => {
+  isConnected = data.connected;
+  const dot = document.getElementById('fbDot');
+  const dialBtn = document.getElementById('fbDialBtn');
+  const hangupBtn = document.getElementById('fbHangupBtn');
+  if (data.connected) {
+    dot.className = 'fb-dot on';
+    dialBtn.disabled = !document.getElementById('fbInput').value;
+    hangupBtn.disabled = false;
+  } else {
+    dot.className = 'fb-dot';
+    dialBtn.disabled = true;
+    hangupBtn.disabled = true;
+  }
+});
+
+window.api.on('phones-update', (data) => {
+  isConnected = data.connected;
+  const dot = document.getElementById('fbDot');
+  const dialBtn = document.getElementById('fbDialBtn');
+  const hangupBtn = document.getElementById('fbHangupBtn');
+  if (data.connected) {
+    dot.className = 'fb-dot on';
+    dialBtn.disabled = !document.getElementById('fbInput').value;
+    hangupBtn.disabled = false;
+  } else {
+    dot.className = 'fb-dot';
+    dialBtn.disabled = true;
+    hangupBtn.disabled = true;
+  }
+  const active = (data.phones || []).find(p => p.id === data.activeId);
+  if (active) {
+    document.getElementById('fbInput').title = '当前: ' + (active.note || active.name) + ' (' + active.ip + ')';
+  }
+});
+
+window.api.on('dial-sent', (data) => { showToast('已发送: ' + data.number, 'success'); });
+window.api.on('dial-result', (data) => {
+  showToast(data.number + ' ' + (data.status === 'ok' ? '成功' : '失败'), data.status === 'ok' ? 'success' : 'error');
+});
+window.api.on('hangup-sent', () => { showToast('已发送挂断', 'success'); });
+window.api.on('error', (data) => { showToast(data.message, 'error'); });
+// Bug10修复: 监听 dial-waking 事件，给用户反馈手机正在被唤醒
+window.api.on('dial-waking', (data) => {
+  showToast('正在唤醒手机，将自动拨号 ' + (data.number || ''), 'success');
+});
+
+// 修复：监听来自 main.js 右键菜单的 menu-dial / menu-hangup 事件
+// main.js 的 floatbar-context-menu 处理器会向 floatBarWindow 发送这两个事件
+window.api.on('menu-dial', () => { dialFromFloat(); });
+window.api.on('menu-hangup', () => { hangupFromFloat(); });
+
+// ==================== 剪贴板 ====================
+let lastClipboard = '';
+let clipboardTimer = null;
+function extractPhone(text) {
+  // Bug26修复: 支持带空格/连字符的手机号，如 "138 0013 8000" 或 "138-0013-8000"
+  const m = text.match(/1[3-9]\d[\s\-]?\d{4}[\s\-]?\d{4}/);
+  return m ? m[0].replace(/[\s\-]/g, '') : null;
+}
+function pollClipboard() {
+  window.api.invoke('read-clipboard').then(d => {
+    if (d.text && d.text !== lastClipboard) {
+      lastClipboard = d.text;
+      const phone = extractPhone(d.text);
+      if (phone) {
+        const fbInput = document.getElementById('fbInput');
+        const fbDialBtn = document.getElementById('fbDialBtn');
+        // Bug6修复: 如果用户正在输入（input 有焦点），不覆盖用户输入
+        if (document.activeElement === fbInput) return;
+        fbInput.value = phone;
+        fbDialBtn.disabled = !isConnected;
+        showToast('检测到: ' + phone, 'success');
+      }
+    }
+  }).catch(() => {}).finally(() => {
+    clipboardTimer = setTimeout(pollClipboard, 500);
+  });
+}
+pollClipboard();
+
+function clearNumber() {
+  const fbInput = document.getElementById('fbInput');
+  const fbDialBtn = document.getElementById('fbDialBtn');
+  fbInput.value = '';
+  fbDialBtn.disabled = true;
+  showToast('已清空', 'success');
+}
+function dialFromFloat() {
+  const number = document.getElementById('fbInput').value.trim();
+  if (!number) { showToast('请先复制号码', 'error'); return; }
+  if (!isConnected) { showToast('手机未连接', 'error'); return; }
+  window.api.send('dial', number);
+}
+function hangupFromFloat() {
+  if (!isConnected) { showToast('手机未连接', 'error'); return; }
+  window.api.send('hangup');
+}
+
+let toastTimer = null;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + (type || '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast'; }, 2500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:tag="bg"
+    android:background="#0D0F14">
+
+    <!-- ViewPager2 容器 -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- 顶部分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#14FFFFFF" />
+
+    <!-- 底部导航栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:tag="bg2"
+        android:background="#161920"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- 连接/设置 Tab -->
+        <LinearLayout
+            android:id="@+id/tabConnect"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <!-- 激活指示条 -->
+            <View
+                android:id="@+id/tabConnectIndicator"
+                android:layout_width="24dp"
+                android:layout_height="2dp"
+                android:layout_marginBottom="4dp"
+                android:background="#4F8EF7"
+                android:visibility="visible" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚙"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tabConnectLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="设置"
+                android:tag="blue"
+                android:textColor="#4F8EF7"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 通话记录 Tab -->
+        <LinearLayout
+            android:id="@+id/tabCallLog"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <View
+                android:id="@+id/tabCallLogIndicator"
+                android:layout_width="24dp"
+                android:layout_height="2dp"
+                android:layout_marginBottom="4dp"
+                android:background="#4F8EF7"
+                android:visibility="invisible" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="☎"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tabCallLogLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="记录"
+                android:tag="text2"
+                android:textColor="#605040"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 统计 Tab -->
+        <LinearLayout
+            android:id="@+id/tabStats"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <View
+                android:id="@+id/tabStatsIndicator"
+                android:layout_width="24dp"
+                android:layout_height="2dp"
+                android:layout_marginBottom="4dp"
+                android:background="#4F8EF7"
+                android:visibility="invisible" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="◈"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tabStatsLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="统计"
+                android:tag="text2"
+                android:textColor="#605040"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 底部安全区域 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:tag="divider"
+        android:background="#0D0F14" />
+
+</LinearLayout>

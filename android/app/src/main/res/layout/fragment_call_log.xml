@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:tag="bg"
+    android:background="#0D0F14"
+    android:orientation="vertical">
+
+    <!-- 标题栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:tag="bg2"
+        android:background="#161920"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="通话记录"
+            android:tag="text"
+            android:textColor="#E8DCC8"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- 连接状态 -->
+        <LinearLayout
+            android:id="@+id/connectionStatusBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginEnd="10dp"
+            android:background="#1E2128"
+            android:paddingStart="8dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="4dp">
+
+            <ImageView
+                android:id="@+id/connectionStatusDot"
+                android:layout_width="7dp"
+                android:layout_height="7dp"
+                android:src="@drawable/dot_gray"
+                android:layout_marginEnd="5dp" />
+
+            <TextView
+                android:id="@+id/connectionStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="未连接"
+                android:tag="text2"
+                android:textColor="#605040"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 连接通道类型徽章 -->
+        <TextView
+            android:id="@+id/connectionModeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#4F8EF7"
+            android:textSize="10sp"
+            android:layout_marginEnd="10dp" />
+
+        <TextView
+            android:id="@+id/callLogCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 条"
+            android:tag="text2"
+            android:textColor="#605040"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- 分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#14FFFFFF" />
+
+    <!-- 拨号卡选择栏（横向滚动胶囊） -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:tag="bg2"
+        android:background="#161920"
+        android:scrollbars="none"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:id="@+id/dialModeBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/dialModePopup"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="6dp"
+                android:background="#1E2128"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="弹窗"
+                android:textColor="#605040"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/dialModeRoundSelect"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="6dp"
+                android:background="#1E2128"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="轮选"
+                android:textColor="#605040"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/dialModeOpposite"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="6dp"
+                android:background="#1E2128"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="相反"
+                android:textColor="#605040"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/dialModeSim1"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="6dp"
+                android:background="#1E2128"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="卡1"
+                android:textColor="#605040"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/dialModeSim2"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="6dp"
+                android:background="#1E2128"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="卡2"
+                android:textColor="#605040"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/dialModeAlternate"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="6dp"
+                android:background="#1E2128"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="循环"
+                android:textColor="#605040"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/dialModeRemember"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="#1E2128"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="记忆"
+                android:textColor="#605040"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- 权限提示 -->
+    <TextView
+        android:id="@+id/callLogPermissionHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1AEF4444"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="需要通话记录权限才能显示"
+        android:textColor="#EF4444"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <!-- 上次通话提示横幅 -->
+    <LinearLayout
+        android:id="@+id/lastCallHintBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1A4F8EF7"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="10dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📞 "
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/lastCallHintText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="上次：卡1  04-25"
+            android:textColor="#4F8EF7"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 通话记录列表 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/callLogRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- 空状态 -->
+    <LinearLayout
+        android:id="@+id/callLogEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📭"
+            android:textSize="40sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="暂无通话记录"
+            android:tag="text2"
+            android:textColor="#605040"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="拨号后记录将显示在这里"
+            android:textColor="#3A3A4A"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+</LinearLayout>

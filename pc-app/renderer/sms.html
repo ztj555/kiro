@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoDial 发短信</title>
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #F0C040;
+  --gold-dark: #8B6914;
+  --bg: #0D0F14;
+  --bg2: #161920;
+  --bg3: #1E2128;
+  --text: #E8DCC8;
+  --text2: #A09070;
+  --green: #22C55E;
+  --red: #EF4444;
+  --blue: #4F8EF7;
+  --blue-dark: #2563EB;
+  --blue-glow: rgba(79,142,247,0.3);
+  --surface: #161920;
+  --surface2: #1E2128;
+  --border: rgba(255,255,255,0.08);
+  --border-active: rgba(79,142,247,0.4);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+  --shadow: none;
+  --font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  --gradient-green: linear-gradient(135deg, #16A34A, #15803D);
+  --gradient-red: linear-gradient(135deg, #DC2626, #B91C1C);
+  --gradient-blue: linear-gradient(135deg, #4F8EF7, #2563EB);
+  --glow-text: none;
+  --floatbar-bg: rgba(22,25,32,0.85);
+  --floatbar-border: rgba(79,142,247,0.25);
+  --floatbar-blur: blur(20px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-family);
+  overflow: hidden;
+  user-select: none;
+}
+.wrap { width: 100%; height: 100%; display: flex; flex-direction: column; }
+
+/* 标题栏 */
+.titlebar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+  height: 36px;
+}
+.titlebar .logo {
+  padding-left: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.logo-icon {
+  width: 20px; height: 20px;
+  background: var(--gradient-blue);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  box-shadow: 0 0 8px var(--blue-glow);
+}
+.titlebar-btns {
+  display: flex;
+  margin-left: auto;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+.titlebar-btn {
+  width: 36px; height: 36px;
+  background: none; border: none;
+  color: var(--text2);
+  font-size: 10px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  -webkit-app-region: no-drag;
+}
+.titlebar-btn:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+.titlebar-btn.close:hover { background: #C42B1C; color: white; }
+</style>
+
+<style>
+/* 主体 */
+.body {
+  flex: 1;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+.body::-webkit-scrollbar { width: 3px; }
+.body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* 字段标签 */
+.field-label {
+  font-size: 10px;
+  color: var(--text2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.field-label svg { opacity: 0.6; }
+
+/* 收件人 */
+.recipient-box {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.recipient-box:focus-within {
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+}
+.recipient-icon { font-size: 18px; flex-shrink: 0; }
+.recipient-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 2px;
+  caret-color: var(--blue);
+  font-variant-numeric: tabular-nums;
+}
+.recipient-input::placeholder { color: rgba(160,144,112,0.4); font-size: 14px; font-weight: 400; letter-spacing: 1px; }
+
+/* 短信内容 */
+.sms-content {
+  flex: 1;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: var(--font-family);
+  resize: none;
+  outline: none;
+  line-height: 1.65;
+  min-height: 110px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: text;
+}
+.sms-content:focus {
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+}
+.sms-content::placeholder { color: rgba(160,144,112,0.35); font-size: 13px; }
+
+/* 字数进度条 */
+.char-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -4px;
+}
+.char-progress-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.char-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--green);
+  transition: width 0.2s, background 0.3s;
+  width: 0%;
+}
+.char-count-text {
+  font-size: 10px;
+  color: var(--text2);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  min-width: 50px;
+  text-align: right;
+}
+.char-count-text.warn { color: #F59E0B; }
+.char-count-text.danger { color: var(--red); }
+
+/* 快捷模板 */
+.quick-templates { flex-shrink: 0; }
+.quick-templates .field-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tpl-manage-btn {
+  font-size: 10px;
+  color: var(--text2);
+  cursor: pointer;
+  background: none;
+  border: none;
+  letter-spacing: 0;
+  text-transform: none;
+  transition: color 0.15s;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.tpl-manage-btn:hover { color: var(--blue); background: rgba(79,142,247,0.08); }
+.tpl-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.tpl-list::-webkit-scrollbar { height: 2px; }
+.tpl-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.tpl-tag {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tpl-tag:hover { border-color: var(--border-active); color: var(--blue); background: rgba(79,142,247,0.07); }
+.tpl-tag:active { transform: scale(0.95); }
+
+/* 发送按钮 */
+.send-btn {
+  width: 100%;
+  padding: 13px;
+  background: var(--gradient-blue);
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(79,142,247,0.25);
+}
+.send-btn:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 4px 20px rgba(79,142,247,0.45);
+  transform: translateY(-1px);
+}
+.send-btn:active:not(:disabled) { transform: translateY(0); }
+.send-btn:disabled {
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: default;
+  opacity: 0.7;
+  font-size: 13px;
+  box-shadow: none;
+}
+.send-btn.sending {
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: wait;
+  box-shadow: none;
+}
+.send-btn.success-state {
+  background: var(--gradient-green);
+  box-shadow: 0 2px 12px rgba(34,197,94,0.3);
+}
+
+/* 模板管理弹窗 */
+.tpl-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+}
+.tpl-modal-overlay.show { display: flex; }
+.tpl-modal {
+  background: var(--surface);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-md);
+  width: 340px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+.tpl-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tpl-modal-title { font-size: 13px; font-weight: 700; color: var(--blue); letter-spacing: 0.5px; }
+.tpl-modal-close {
+  background: none; border: none;
+  color: var(--text2); font-size: 16px;
+  cursor: pointer; padding: 3px 7px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+}
+.tpl-modal-close:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+.tpl-modal-body {
+  flex: 1; overflow-y: auto;
+  padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.tpl-modal-body::-webkit-scrollbar { width: 3px; }
+.tpl-modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.tpl-edit-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.tpl-edit-item input, .tpl-edit-item textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 9px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font-family);
+  outline: none; resize: none;
+  transition: border-color 0.2s;
+  user-select: text;
+}
+.tpl-edit-item input:focus, .tpl-edit-item textarea:focus { border-color: var(--border-active); }
+.tpl-edit-item input::placeholder, .tpl-edit-item textarea::placeholder { color: var(--text2); font-size: 11px; }
+.tpl-edit-row { display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+.tpl-edit-save {
+  background: rgba(79,142,247,0.15); border: 1px solid var(--blue);
+  border-radius: var(--radius-sm); padding: 4px 12px;
+  color: var(--blue); font-size: 11px; cursor: pointer; transition: all 0.15s;
+}
+.tpl-edit-save:hover { background: rgba(79,142,247,0.25); }
+.tpl-edit-del {
+  background: none; border: 1px solid var(--red);
+  border-radius: var(--radius-sm); padding: 4px 10px;
+  color: var(--red); font-size: 11px; cursor: pointer; transition: all 0.15s;
+}
+.tpl-edit-del:hover { background: rgba(239,68,68,0.12); }
+.tpl-modal-footer { padding: 8px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.tpl-add-btn {
+  width: 100%;
+  background: none;
+  border: 1px dashed rgba(79,142,247,0.4);
+  border-radius: var(--radius-md);
+  padding: 7px;
+  color: var(--blue);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tpl-add-btn:hover { border-color: var(--blue); background: rgba(79,142,247,0.07); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 12px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 8px 18px;
+  font-size: 12px; color: var(--text);
+  transition: transform 0.25s; z-index: 999; white-space: nowrap;
+  backdrop-filter: blur(12px);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--green); color: var(--green); }
+.toast.error { border-color: var(--red); color: var(--red); }
+</style>
+<script src="../themes/theme-data.js"></script>
+<script src="js/theme.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <!-- 标题栏 -->
+  <div class="titlebar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      发短信
+    </div>
+    <div class="titlebar-btns">
+      <button class="titlebar-btn" id="btnMinimize" title="最小化">
+        <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
+      </button>
+      <button class="titlebar-btn close" id="btnClose" title="关闭">
+        <svg width="10" height="10" viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- 收件人 -->
+    <div>
+      <div class="field-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        收件人
+      </div>
+      <div class="recipient-box">
+        <span class="recipient-icon">📱</span>
+        <input type="text" class="recipient-input" id="recipientInput"
+               placeholder="输入收件人号码..." inputmode="tel" autocomplete="off" maxlength="20">
+      </div>
+    </div>
+
+    <!-- 短信内容 -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+      <div class="field-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        短信内容
+      </div>
+      <textarea class="sms-content" id="smsContent" placeholder="请输入短信内容..." maxlength="500"></textarea>
+      <div class="char-progress-wrap">
+        <div class="char-progress-bar">
+          <div class="char-progress-fill" id="charProgressFill"></div>
+        </div>
+        <div class="char-count-text" id="charCount">0 / 500</div>
+      </div>
+    </div>
+
+    <!-- 快捷模板 -->
+    <div class="quick-templates">
+      <div class="field-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        快捷模板
+        <button class="tpl-manage-btn" id="tplManageBtn" style="margin-left:auto;">管理</button>
+      </div>
+      <div class="tpl-list" id="tplList"></div>
+    </div>
+
+    <!-- 发送按钮 -->
+    <button class="send-btn" id="sendBtn" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      请输入内容
+    </button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- 模板管理弹窗 -->
+<div class="tpl-modal-overlay" id="tplModalOverlay">
+  <div class="tpl-modal">
+    <div class="tpl-modal-header">
+      <span class="tpl-modal-title">管理快捷模板</span>
+      <button class="tpl-modal-close" id="tplModalClose">&times;</button>
+    </div>
+    <div class="tpl-modal-body" id="tplModalBody"></div>
+    <div class="tpl-modal-footer">
+      <button class="tpl-add-btn" id="tplAddBtn">+ 添加新模板</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentNumber = '';
+let isSending = false;
+let phoneConnected = false;
+
+// ==================== 标题栏 ====================
+document.getElementById('btnMinimize').addEventListener('click', () => { window.api.send('window-control', 'minimize'); });
+document.getElementById('btnClose').addEventListener('click', () => { window.close(); });
+
+// ==================== 接收号码 ====================
+const recipientInput = document.getElementById('recipientInput');
+window.api.on('sms-number', (number) => {
+  if (number) recipientInput.value = number;
+  updateSendBtn();
+});
+window.api.on('sms-content', (content) => {
+  if (content) { smsContent.value = content; smsContent.dispatchEvent(new Event('input')); }
+});
+window.api.on('status-update', (data) => {
+  phoneConnected = !!data.connected;
+  updateSendBtn();
+});
+// Bug12修复: 监听 phones-update 同步手机连接状态，避免短信窗口在 phones-update 后打开时 phoneConnected 为 false
+window.api.on('phones-update', (data) => {
+  phoneConnected = !!data.connected;
+  updateSendBtn();
+});
+recipientInput.addEventListener('input', () => {
+  currentNumber = recipientInput.value.trim().replace(/\s/g, '');
+  updateSendBtn();
+});
+
+// ==================== 短信内容 ====================
+const smsContent = document.getElementById('smsContent');
+const charCount = document.getElementById('charCount');
+const charFill = document.getElementById('charProgressFill');
+const sendBtn = document.getElementById('sendBtn');
+
+smsContent.addEventListener('input', () => {
+  const len = smsContent.value.length;
+  const maxLen = 500;
+  const pct = Math.min(100, (len / maxLen) * 100);
+  charFill.style.width = pct + '%';
+  // 颜色：0-70字绿，70-140黄，>140红
+  if (len <= 70) {
+    charFill.style.background = 'var(--green)';
+    charCount.className = 'char-count-text';
+  } else if (len <= 140) {
+    charFill.style.background = '#F59E0B';
+    charCount.className = 'char-count-text warn';
+  } else {
+    charFill.style.background = 'var(--red)';
+    charCount.className = 'char-count-text danger';
+  }
+  charCount.textContent = len + ' / ' + maxLen;
+  updateSendBtn();
+});
+
+function updateSendBtn() {
+  if (isSending) return;
+  currentNumber = recipientInput.value.trim().replace(/\s/g, '');
+  const hasContent = smsContent.value.trim().length > 0;
+  const hasNumber = currentNumber.length > 0;
+  sendBtn.disabled = !(hasContent && hasNumber && phoneConnected);
+  sendBtn.className = 'send-btn';
+  if (sendBtn.disabled) {
+    if (!phoneConnected) {
+      sendBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/></svg> 请先连接手机';
+    } else if (!hasNumber) {
+      sendBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/></svg> 请输入号码';
+    } else {
+      sendBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> 请输入内容';
+    }
+  } else {
+    sendBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> 发送';
+  }
+}
+
+// ==================== 发送 ====================
+sendBtn.addEventListener('click', () => {
+  const content = smsContent.value.trim();
+  currentNumber = recipientInput.value.trim().replace(/\s/g, '');
+  if (!content || !currentNumber) return;
+  isSending = true;
+  sendBtn.disabled = true;
+  sendBtn.className = 'send-btn sending';
+  sendBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 等待手机确认...';
+  window.api.send('send-sms', { number: currentNumber, content: content });
+  showToast('已发送到手机，等待确认...');
+});
+
+// ==================== 监听短信结果 ====================
+window.api.on('sms-result', (data) => {
+  isSending = false;
+  const btn = document.getElementById('sendBtn');
+  if (data.status === 'sent') {
+    showToast('✅ 短信发送成功', 'success');
+    btn.className = 'send-btn success-state';
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 发送成功';
+    btn.disabled = true;
+    setTimeout(() => {
+      smsContent.value = '';
+      charCount.textContent = '0 / 500';
+      charFill.style.width = '0%';
+      charFill.style.background = 'var(--green)';
+      charCount.className = 'char-count-text';
+      updateSendBtn();
+    }, 2000);
+  } else if (data.status === 'cancelled') {
+    showToast('❌ 用户取消', 'error');
+    updateSendBtn();
+  } else {
+    showToast('❌ 发送失败', 'error');
+    updateSendBtn();
+  }
+});
+
+// ==================== Toast ====================
+let toastTimer = null;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type || '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast'; }, 2500);
+}
+
+// ==================== 快捷短信模板 ====================
+const TPL_STORAGE_KEY = 'autodial_sms_templates';
+const DEFAULT_TEMPLATES = [
+  { id: 1, title: '回访问候', content: '您好，我是之前联系过您的客服，请问您对我们产品还有什么疑问吗？' },
+  { id: 2, title: '催办提醒', content: '您好，温馨提醒您，您的业务办理进度已更新，请及时查看。' },
+  { id: 3, title: '会议通知', content: '您好，我们将于明天上午10点召开线上会议，届时请准时参加。' },
+  { id: 4, title: '感谢回复', content: '感谢您的咨询与支持，如有其他问题随时联系我们，祝您生活愉快！' },
+  { id: 5, title: '节日祝福', content: '值此佳节来临之际，祝您及家人节日快乐，万事如意！' }
+];
+function loadTemplates() {
+  try { const raw = localStorage.getItem(TPL_STORAGE_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+}
+function saveTemplates(templates) {
+  try { localStorage.setItem(TPL_STORAGE_KEY, JSON.stringify(templates)); } catch (e) {}
+}
+function renderTemplateTags() {
+  const templates = loadTemplates();
+  const container = document.getElementById('tplList');
+  container.innerHTML = '';
+  templates.forEach(tpl => {
+    const tag = document.createElement('div');
+    tag.className = 'tpl-tag';
+    tag.textContent = tpl.title;
+    tag.title = tpl.content;
+    tag.addEventListener('click', () => {
+      smsContent.value = tpl.content;
+      smsContent.dispatchEvent(new Event('input'));
+      smsContent.focus();
+    });
+    container.appendChild(tag);
+  });
+}
+
+// ==================== 模板管理弹窗 ====================
+const tplOverlay = document.getElementById('tplModalOverlay');
+const tplModalBody = document.getElementById('tplModalBody');
+document.getElementById('tplManageBtn').addEventListener('click', openTplModal);
+document.getElementById('tplModalClose').addEventListener('click', closeTplModal);
+document.getElementById('tplAddBtn').addEventListener('click', () => addTplEditItem(null));
+tplOverlay.addEventListener('click', (e) => { if (e.target === tplOverlay) closeTplModal(); });
+
+function openTplModal() {
+  tplModalBody.innerHTML = '';
+  const templates = loadTemplates();
+  templates.forEach(tpl => addTplEditItem(tpl));
+  tplOverlay.classList.add('show');
+}
+function closeTplModal() {
+  tplOverlay.classList.remove('show');
+  renderTemplateTags();
+}
+function addTplEditItem(tpl) {
+  const item = document.createElement('div');
+  item.className = 'tpl-edit-item';
+  item.innerHTML =
+    '<input type="text" class="tpl-edit-title" placeholder="模板名称" maxlength="20" value="' + (tpl ? tpl.title.replace(/"/g, '&quot;') : '') + '">' +
+    '<textarea class="tpl-edit-content" placeholder="模板内容" rows="2" maxlength="500">' + (tpl ? tpl.content : '') + '</textarea>' +
+    '<div class="tpl-edit-row">' +
+      '<button class="tpl-edit-del">' + (tpl ? '删除' : '取消') + '</button>' +
+      '<button class="tpl-edit-save">保存</button>' +
+    '</div>';
+  tplModalBody.appendChild(item);
+  item.querySelector('.tpl-edit-save').addEventListener('click', () => {
+    const title = item.querySelector('.tpl-edit-title').value.trim();
+    const content = item.querySelector('.tpl-edit-content').value.trim();
+    if (!title || !content) { showToast('名称和内容不能为空', 'error'); return; }
+    const templates = loadTemplates();
+    if (tpl) {
+      const idx = templates.findIndex(t => t.id === tpl.id);
+      if (idx >= 0) { templates[idx].title = title; templates[idx].content = content; }
+    } else {
+      const newId = templates.length > 0 ? Math.max(...templates.map(t => t.id)) + 1 : 1;
+      templates.push({ id: newId, title, content });
+    }
+    saveTemplates(templates);
+    item.remove();
+    showToast('已保存', 'success');
+  });
+  item.querySelector('.tpl-edit-del').addEventListener('click', () => {
+    if (tpl) {
+      const templates = loadTemplates();
+      saveTemplates(templates.filter(t => t.id !== tpl.id));
+      showToast('已删除', 'success');
+    }
+    item.remove();
+  });
+}
+
+renderTemplateTags();
+
+// 快捷键
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) { if (!sendBtn.disabled) sendBtn.click(); }
+  if (e.key === 'Escape') { window.close(); }
+});
+
+if (typeof ThemeEngine !== 'undefined') ThemeEngine.initTheme();
+</script>
+</body>
+</html>

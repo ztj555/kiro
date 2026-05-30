@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:tag="bg"
+    android:background="#0D0F14"
+    android:orientation="vertical">
+
+    <!-- 标题栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:tag="bg2"
+        android:background="#161920"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="拨号统计"
+            android:tag="text"
+            android:textColor="#E8DCC8"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#14FFFFFF" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 今日数据双列卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="10dp">
+
+                <!-- 今日拨号次数 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:tag="bg2"
+                    android:background="#161920"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="今日拨号"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp"
+                        android:letterSpacing="0.05" />
+
+                    <TextView
+                        android:id="@+id/statsTodayCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="0"
+                        android:textColor="#4F8EF7"
+                        android:textSize="44sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="次"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- 今日通时 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:tag="bg2"
+                    android:background="#161920"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="今日通时"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp"
+                        android:letterSpacing="0.05" />
+
+                    <TextView
+                        android:id="@+id/statsTodayDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="0.0"
+                        android:textColor="#22C55E"
+                        android:textSize="44sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="分钟"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 累计数据双列卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="10dp">
+
+                <!-- 累计拨号 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:tag="bg2"
+                    android:background="#161920"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="累计拨号"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/statsTotalCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="0"
+                        android:tag="text"
+                        android:textColor="#E8DCC8"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="次"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- 累计通时 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:tag="bg2"
+                    android:background="#161920"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="累计通时"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/statsTotalDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="0.0"
+                        android:tag="text"
+                        android:textColor="#E8DCC8"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="分钟"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 财运卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:tag="bg2"
+                android:background="#161920"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="今日财运"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/statsTodayLuck"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="0"
+                        android:tag="goldLight"
+                        android:textColor="#F0C040"
+                        android:textSize="36sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="财运值"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- 竖向分割线 -->
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="60dp"
+                    android:background="#14FFFFFF"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="累计财运"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/statsTotalLuck"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="0"
+                        android:tag="text"
+                        android:textColor="#E8DCC8"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="财运值"
+                        android:tag="text2"
+                        android:textColor="#605040"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 财运提示 -->
+            <TextView
+                android:id="@+id/statsLuckHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:text="💡 每次成功通话 +1 财运"
+                android:tag="text2"
+                android:textColor="#3A3A4A"
+                android:textSize="11sp" />
+
+            <!-- 近7天趋势标题 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="10dp">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="14dp"
+                    android:background="#4F8EF7"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="近 7 天趋势"
+                    android:tag="text"
+                    android:textColor="#E8DCC8"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 近7天柱状图 -->
+            <LinearLayout
+                android:id="@+id/statsChartContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:tag="bg2"
+                android:background="#161920"
+                android:gravity="bottom|center_horizontal"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:paddingBottom="0dp" />
+
+            <!-- 日期标签 -->
+            <LinearLayout
+                android:id="@+id/statsDateLabels"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:tag="bg2"
+                android:background="#161920"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingBottom="12dp" />
+
+            <!-- 分割线 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="#14FFFFFF" />
+
+            <!-- 每日明细标题 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="10dp">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="14dp"
+                    android:background="#22C55E"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="每日明细"
+                    android:tag="text"
+                    android:textColor="#E8DCC8"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 详细列表 -->
+            <LinearLayout
+                android:id="@+id/statsDetailList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="40dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -39,39 +39,12 @@ jobs:
         ls -la android/app/autodial-release.p12
       shell: bash
     
-    - name: Fix PKCS12 (use openssl to reduce Tag count)
-      working-directory: ./android/app
-      run: |
-        # keytool 生成的 PKCS12 含有 >30 个 Tag，Android Gradle Plugin 不支持
-        # 且 keytool 强制密码 >=6 位。用 openssl 重新打包可同时解决两个问题。
-        openssl pkcs12 -in autodial-release.p12 \
-          -passin pass:"$KEY_STORE_PASSWORD" \
-          -nokeys -out cert.pem
-        openssl pkcs12 -in autodial-release.p12 \
-          -passin pass:"$KEY_STORE_PASSWORD" \
-          -nocerts -nodes -out key.pem
-        openssl pkcs12 -export \
-          -in cert.pem \
-          -inkey key.pem \
-          -name "$KEY_ALIAS" \
-          -out autodial-release-fixed.p12 \
-          -passout pass:"$KEY_STORE_PASSWORD"
-        mv autodial-release-fixed.p12 autodial-release.p12
-        rm -f cert.pem key.pem
-        ls -la autodial-release.p12
-      shell: bash
-      env:
-        KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-    
     - name: Install Gradle and generate wrapper
       run: |
-        # Install Gradle
         wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
         unzip -q gradle-8.2-bin.zip
         export PATH=$PWD/gradle-8.2/bin:$PATH
         gradle --version
-        # Generate proper wrapper
         cd android
         gradle wrapper --gradle-version 8.2
         ls -la gradlew
@@ -98,7 +71,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: android/app/build/outputs/apk/**/*.apk
+        name: app-release
+        path: android/app/build/outputs/apk/release/*.apk
         retention-days: 30
         if-no-files-found: warn

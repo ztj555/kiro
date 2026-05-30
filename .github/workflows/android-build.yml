@@ -39,6 +39,28 @@ jobs:
         ls -la android/app/autodial-release.p12
       shell: bash
     
+    - name: Convert PKCS12 to JKS (fix Tag number over 30)
+      working-directory: ./android
+      run: |
+        keytool -importkeystore \
+          -srckeystore app/autodial-release.p12 \
+          -srcstoretype PKCS12 \
+          -srcstorepass "$KEY_STORE_PASSWORD" \
+          -srckeypass "$KEY_PASSWORD" \
+          -srcalias "$KEY_ALIAS" \
+          -destkeystore app/autodial-release.jks \
+          -deststoretype JKS \
+          -deststorepass "$KEY_STORE_PASSWORD" \
+          -destkeypass "$KEY_PASSWORD" \
+          -destalias "$KEY_ALIAS" \
+          -noprompt
+        ls -la app/autodial-release.jks
+      shell: bash
+      env:
+        KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+    
     - name: Install Gradle and generate wrapper
       run: |
         # Install Gradle
@@ -56,8 +78,8 @@ jobs:
       working-directory: ./android
       run: ./gradlew assembleRelease --stacktrace
       env:
-        KEYSTORE_FILE: autodial-release.p12
-        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_STORE_FILE: autodial-release.jks
+        KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     

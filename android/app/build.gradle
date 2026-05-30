@@ -11,8 +11,8 @@ android {
         applicationId "com.autodial.app"
         minSdk 24
         targetSdk 34
-        versionCode 361
-        versionName "3.61"
+        versionCode 371
+        versionName "3.71"
     }
 
     signingConfigs {
@@ -67,7 +67,7 @@ dependencies {
     implementation 'androidx.fragment:fragment-ktx:1.6.2'
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
 
-    // WebSocket 客户端
+    // WebSocket 客户�?
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 
     // JSON 解析

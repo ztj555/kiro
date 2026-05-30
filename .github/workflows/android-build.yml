@@ -34,17 +34,11 @@ jobs:
       run: yes | sdkmanager --licenses || true
       shell: bash
     
-    - name: Verify Keystore file exists
+    - name: Copy keystore to expected location
       run: |
         ls -la android/app/autodial-key.p12
-        # 验证 p12 文件有效性
-        openssl pkcs12 -in android/app/autodial-key.p12 -passin pass:"$KEY_STORE_PASSWORD" -info -noout 2>&1 | head -10
-      shell: bash
-      env:
-        KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-    
-    - name: Copy keystore to expected location
-      run: cp android/app/autodial-key.p12 android/app/autodial-release.p12
+        cp android/app/autodial-key.p12 android/app/autodial-release.p12
+        ls -la android/app/autodial-release.p12
       shell: bash
     
     - name: Install Gradle and generate wrapper

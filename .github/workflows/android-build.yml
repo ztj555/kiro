@@ -39,22 +39,24 @@ jobs:
         ls -la android/app/autodial-release.p12
       shell: bash
     
-    - name: Convert PKCS12 to JKS (fix Tag number over 30)
+    - name: Re-save PKCS12 (fix Tag number over 30)
       working-directory: ./android
       run: |
+        # 重新保存为 PKCS12，减少 Tag 数量，兼容 Android Gradle Plugin
         keytool -importkeystore \
           -srckeystore app/autodial-release.p12 \
           -srcstoretype PKCS12 \
           -srcstorepass "$KEY_STORE_PASSWORD" \
           -srckeypass "$KEY_PASSWORD" \
           -srcalias "$KEY_ALIAS" \
-          -destkeystore app/autodial-release.jks \
-          -deststoretype JKS \
+          -destkeystore app/autodial-release-fixed.p12 \
+          -deststoretype PKCS12 \
           -deststorepass "$KEY_STORE_PASSWORD" \
           -destkeypass "$KEY_PASSWORD" \
           -destalias "$KEY_ALIAS" \
           -noprompt
-        ls -la app/autodial-release.jks
+        mv app/autodial-release-fixed.p12 app/autodial-release.p12
+        ls -la app/autodial-release.p12
       shell: bash
       env:
         KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -78,7 +80,7 @@ jobs:
       working-directory: ./android
       run: ./gradlew assembleRelease --stacktrace
       env:
-        KEY_STORE_FILE: autodial-release.jks
+        KEY_STORE_FILE: autodial-release.p12
         KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}

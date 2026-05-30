@@ -33,6 +33,7 @@
       "phone-connection-manager.js",
       "preload.js",
       "renderer/**/*",
+      "themes/**/*",
       "node_modules/**/*"
     ],
     "electronDownload": {

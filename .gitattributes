@@ -1,0 +1,8 @@
+# 保护二进制文件不被Git转换损坏
+*.p12 binary
+*.p12 -diff -merge -text
+
+# 其他二进制文件
+*.key binary
+*.jks binary
+*.bks binary

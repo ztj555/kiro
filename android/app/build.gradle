@@ -39,7 +39,8 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            // 签名已禁用，GitHub Actions 产出未签名 APK，本地用 apksigner 手动签名
+            // signingConfig signingConfigs.release
         }
         debug {
             signingConfig signingConfigs.debug

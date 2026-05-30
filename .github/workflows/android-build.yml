@@ -34,13 +34,6 @@ jobs:
       run: yes | sdkmanager --licenses || true
       shell: bash
     
-    - name: Copy keystore to expected location
-      run: |
-        ls -la android/app/autodial-key.p12
-        cp android/app/autodial-key.p12 android/app/autodial-release.p12
-        ls -la android/app/autodial-release.p12
-      shell: bash
-    
     - name: Install Gradle and generate wrapper
       run: |
         wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
@@ -56,14 +49,9 @@ jobs:
       run: chmod +x ./android/gradlew
       shell: bash
     
-    - name: Build Release APK
+    - name: Build Release APK (unsigned)
       working-directory: ./android
       run: ./gradlew assembleRelease --stacktrace
-      env:
-        KEY_STORE_FILE: autodial-release.p12
-        KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     
     - name: Find APK files
       run: |

@@ -38,7 +38,33 @@ jobs:
         echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/autodial-release.p12
         ls -la android/app/autodial-release.p12
       shell: bash
-    
+
+    - name: Fix PKCS12 Tag count (openssl repackage)
+      working-directory: ./android/app
+      run: |
+        # keytool 生成的 PKCS12 含 >30 个 Tag，Android Gradle Plugin 不支持
+        # 用 openssl 重新打包，生成干净的文件（Tag 数量极少）
+        openssl pkcs12 -in autodial-release.p12 \
+          -passin pass:"$KEY_STORE_PASSWORD" \
+          -nokeys -out cert.pem 2>/dev/null
+        openssl pkcs12 -in autodial-release.p12 \
+          -passin pass:"$KEY_STORE_PASSWORD" \
+          -nocerts -nodes -out key.pem 2>/dev/null
+        openssl pkcs12 -export \
+          -in cert.pem \
+          -inkey key.pem \
+          -name "$KEY_ALIAS" \
+          -out autodial-release-clean.p12 \
+          -passout pass:"$KEY_STORE_PASSWORD"
+        mv autodial-release-clean.p12 autodial-release.p12
+        rm -f cert.pem key.pem
+        echo "=== Repackaged PKCS12 info ==="
+        openssl pkcs12 -in autodial-release.p12 -passin pass:"$KEY_STORE_PASSWORD" -info -noout 2>&1 | head -20
+      shell: bash
+      env:
+        KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+
     - name: Install Gradle and generate wrapper
       run: |
         wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip

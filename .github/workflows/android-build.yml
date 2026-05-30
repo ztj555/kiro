@@ -39,29 +39,30 @@ jobs:
         ls -la android/app/autodial-release.p12
       shell: bash
     
-    - name: Re-save PKCS12 (fix Tag number over 30)
-      working-directory: ./android
+    - name: Fix PKCS12 (use openssl to reduce Tag count)
+      working-directory: ./android/app
       run: |
-        # 重新保存为 PKCS12，减少 Tag 数量，兼容 Android Gradle Plugin
-        keytool -importkeystore \
-          -srckeystore app/autodial-release.p12 \
-          -srcstoretype PKCS12 \
-          -srcstorepass "$KEY_STORE_PASSWORD" \
-          -srckeypass "$KEY_PASSWORD" \
-          -srcalias "$KEY_ALIAS" \
-          -destkeystore app/autodial-release-fixed.p12 \
-          -deststoretype PKCS12 \
-          -deststorepass "$KEY_STORE_PASSWORD" \
-          -destkeypass "$KEY_PASSWORD" \
-          -destalias "$KEY_ALIAS" \
-          -noprompt
-        mv app/autodial-release-fixed.p12 app/autodial-release.p12
-        ls -la app/autodial-release.p12
+        # keytool 生成的 PKCS12 含有 >30 个 Tag，Android Gradle Plugin 不支持
+        # 且 keytool 强制密码 >=6 位。用 openssl 重新打包可同时解决两个问题。
+        openssl pkcs12 -in autodial-release.p12 \
+          -passin pass:"$KEY_STORE_PASSWORD" \
+          -nokeys -out cert.pem
+        openssl pkcs12 -in autodial-release.p12 \
+          -passin pass:"$KEY_STORE_PASSWORD" \
+          -nocerts -nodes -out key.pem
+        openssl pkcs12 -export \
+          -in cert.pem \
+          -inkey key.pem \
+          -name "$KEY_ALIAS" \
+          -out autodial-release-fixed.p12 \
+          -passout pass:"$KEY_STORE_PASSWORD"
+        mv autodial-release-fixed.p12 autodial-release.p12
+        rm -f cert.pem key.pem
+        ls -la autodial-release.p12
       shell: bash
       env:
         KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     
     - name: Install Gradle and generate wrapper
       run: |
@@ -81,7 +82,7 @@ jobs:
       run: ./gradlew assembleRelease --stacktrace
       env:
         KEY_STORE_FILE: autodial-release.p12
-        KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     

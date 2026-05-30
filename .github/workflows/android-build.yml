@@ -36,9 +36,10 @@ jobs:
     
     - name: Decode Keystore from Secret
       run: |
-        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/autodial-release.p12
+        # 使用 printf 避免 echo 解释转义字符或添加多余换行
+        printf '%s' "${{ secrets.KEY_STORE_BASE64 }}" | base64 -d > android/app/autodial-release.p12
         ls -la android/app/autodial-release.p12
-        # 验证 p12 文件有效性
+        # 验证 p12 文件有效性（仅显示证书信息，不导出私钥）
         openssl pkcs12 -in android/app/autodial-release.p12 -passin pass:"$KEY_STORE_PASSWORD" -info -noout 2>&1 | head -10
       shell: bash
       env:

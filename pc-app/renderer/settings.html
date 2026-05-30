@@ -18,11 +18,11 @@
   --red: #EF4444;
   --blue: #4F8EF7;
   --blue-dark: #2563EB;
-  --blue-glow: rgba(79,142,247,0.3);
+  --blue-glow: var(--blue-30);
   --surface: #161920;
   --surface2: #1E2128;
   --border: rgba(255,255,255,0.08);
-  --border-active: rgba(79,142,247,0.4);
+  --border-active: var(--blue-40);
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 24px;
@@ -33,7 +33,7 @@
   --gradient-blue: linear-gradient(135deg, #4F8EF7, #2563EB);
   --glow-text: none;
   --floatbar-bg: rgba(22,25,32,0.85);
-  --floatbar-border: rgba(79,142,247,0.25);
+  --floatbar-border: var(--blue-25);
   --floatbar-blur: blur(20px);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -128,7 +128,7 @@ html, body {
   overflow: hidden;
   transition: border-color 0.2s;
 }
-.setting-card:hover { border-color: rgba(79,142,247,0.2); }
+.setting-card:hover { border-color: var(--blue-20); }
 
 .setting-item {
   display: flex;
@@ -198,9 +198,9 @@ html, body {
   transition: all 0.15s;
   white-space: nowrap;
 }
-.select-option:hover { border-color: rgba(79,142,247,0.4); color: var(--text); }
+.select-option:hover { border-color: var(--blue-40); color: var(--text); }
 .select-option.active {
-  background: rgba(79,142,247,0.15);
+  background: var(--blue-15);
   border-color: var(--blue);
   color: var(--blue);
   font-weight: 600;
@@ -235,9 +235,9 @@ html, body {
   transition: all 0.15s;
   text-align: center;
 }
-.btn-cloud:hover { border-color: rgba(79,142,247,0.4); color: var(--blue); background: rgba(79,142,247,0.08); }
-.btn-cloud.primary { background: rgba(79,142,247,0.15); border-color: var(--blue); color: var(--blue); font-weight: 600; }
-.btn-cloud.primary:hover { background: rgba(79,142,247,0.25); }
+.btn-cloud:hover { border-color: var(--blue-40); color: var(--blue); background: var(--blue-08); }
+.btn-cloud.primary { background: var(--blue-15); border-color: var(--blue); color: var(--blue); font-weight: 600; }
+.btn-cloud.primary:hover { background: var(--blue-25); }
 
 /* 主题选择器 */
 .theme-grid {
@@ -268,7 +268,7 @@ html, body {
 .theme-preview > span { flex: 1; height: 100%; }
 .theme-card.active .theme-preview {
   border-color: var(--blue);
-  box-shadow: 0 0 8px rgba(79,142,247,0.4);
+  box-shadow: 0 0 8px var(--blue-40);
 }
 .theme-name { font-size: 9px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
 
@@ -471,7 +471,7 @@ html, body {
     </div>
     <div id="serverList" style="flex:1;overflow-y:auto;min-height:60px;"></div>
     <div style="display:flex;gap:8px;margin-top:12px;">
-      <button id="btnAddServer" style="flex:1;padding:8px;background:rgba(79,142,247,0.15);color:var(--blue);border:1px solid var(--blue);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.15s;" onmouseover="this.style.background='rgba(79,142,247,0.25)'" onmouseout="this.style.background='rgba(79,142,247,0.15)'">+ 添加服务器</button>
+      <button id="btnAddServer" style="flex:1;padding:8px;background:var(--blue-15);color:var(--blue);border:1px solid var(--blue);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.15s;" onmouseover="this.style.background='var(--blue-25)'" onmouseout="this.style.background='var(--blue-15)'">+ 添加服务器</button>
     </div>
   </div>
 </div>
@@ -589,7 +589,7 @@ function renderServerList() {
     addrEl.style.cssText = 'flex:1;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
     const connBtn = document.createElement('button');
     connBtn.textContent = '连接';
-    connBtn.style.cssText = 'padding:3px 9px;background:rgba(79,142,247,0.15);color:var(--blue);border:1px solid var(--blue);border-radius:var(--radius-sm);cursor:pointer;font-size:11px;';
+    connBtn.style.cssText = 'padding:3px 9px;background:var(--blue-15);color:var(--blue);border:1px solid var(--blue);border-radius:var(--radius-sm);cursor:pointer;font-size:11px;';
     connBtn.addEventListener('click', () => {
       window.api.send('connect-cloud-specific', addr);
       document.getElementById('cloudStatus').textContent = '正在连接 ' + stripCloudPrefix(addr) + ' ...';

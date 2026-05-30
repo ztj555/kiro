@@ -10,22 +10,46 @@
   let currentThemeId = DEFAULT_THEME || 'dark-gold';
   let currentMode = DEFAULT_MODE || 'dark';
 
+  // --- 工具函数 ---
+  function hexToRgb(hex) {
+    if (!hex || typeof hex !== 'string') return null;
+    hex = hex.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(function(c) { return c + c; }).join('');
+    if (hex.length !== 6) return null;
+    return {
+      r: parseInt(hex.substring(0, 2), 16),
+      g: parseInt(hex.substring(2, 4), 16),
+      b: parseInt(hex.substring(4, 6), 16)
+    };
+  }
+
+  function getLuminance(hex) {
+    var rgb = hexToRgb(hex);
+    if (!rgb) return 0;
+    var r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255;
+    r = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
+    g = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
+    b = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+
   // 查找主题数据
   function findTheme(id) {
-    return THEME_DATA.find(t => t.id === id) || THEME_DATA[0];
+    return THEME_DATA.find(function(t) { return t.id === id; }) || THEME_DATA[0];
   }
 
   // 将对象写入 document.documentElement.style
   function setCSSVars(vars) {
-    const root = document.documentElement;
-    for (const [key, value] of Object.entries(vars)) {
-      const cssKey = '--' + key.replace(/([A-Z])/g, '-$1').toLowerCase();
-      root.style.setProperty(cssKey, value);
+    var root = document.documentElement;
+    for (var key in vars) {
+      if (!vars.hasOwnProperty(key)) continue;
+      var cssKey = '--' + key.replace(/([A-Z])/g, '-$1').toLowerCase();
+      root.style.setProperty(cssKey, vars[key]);
     }
   }
 
   // CSS变量名映射：JS驼峰 -> CSS连字符
-  const COLOR_MAP = {
+  var COLOR_MAP = {
     gold: 'gold', goldLight: 'gold-light', goldDark: 'gold-dark',
     bg: 'bg', bg2: 'bg2', bg3: 'bg3',
     text: 'text', text2: 'text2',
@@ -33,27 +57,55 @@
     floatbarBg: 'floatbar-bg', floatbarBorder: 'floatbar-border', floatbarBlur: 'floatbar-blur'
   };
 
-  const STYLE_MAP = {
-    radiusSm: 'radius-sm', radiusMd: 'radius-md', radiusLg: 'radius-lg',
-    shadow: 'shadow', fontFamily: 'font-family',
-    gradientGreen: 'gradient-green', gradientRed: 'gradient-red',
-    glowText: 'glow-text', backdropFilter: 'backdrop-filter'
-  };
+  // 根据背景明暗自动推导 blue / surface / border 系列色值
+  function deriveAdaptiveColors(colors) {
+    var root = document.documentElement;
+    var bgColor = colors.bg || '#111318';
+    var isLight = getLuminance(bgColor) > 0.35;
+
+    // 深色底 → 亮蓝；浅色底 → 深蓝（保证对比度）
+    var blueHex   = isLight ? '#2563EB' : '#4F8EF7';
+    var blueDark  = isLight ? '#1D4ED8' : '#2563EB';
+    var blueR     = isLight ? 37  : 79;
+    var blueG     = isLight ? 99  : 142;
+    var blueB     = isLight ? 235 : 247;
+
+    root.style.setProperty('--blue', blueHex);
+    root.style.setProperty('--blue-dark', blueDark);
+    root.style.setProperty('--blue-glow', 'rgba(' + blueR + ',' + blueG + ',' + blueB + ',' + (isLight ? '0.18)' : '0.3)'));
+    root.style.setProperty('--gradient-blue', 'linear-gradient(135deg, ' + blueHex + ', ' + blueDark + ')');
+
+    // 蓝色透明渐变：覆盖 rgba(79,142,247,0.xx) 硬编码值的所有使用场景
+    var opacities = [5, 7, 8, 10, 12, 15, 20, 22, 25, 30, 40, 45, 50, 60];
+    for (var i = 0; i < opacities.length; i++) {
+      var op = opacities[i];
+      var pad = op < 10 ? '0' + op : '' + op;
+      root.style.setProperty('--blue-' + pad, 'rgba(' + blueR + ',' + blueG + ',' + blueB + ',' + (op / 100) + ')');
+    }
+
+    // 表面色：深色模式深灰，浅色模式用主题的 bg2/bg3
+    root.style.setProperty('--surface', colors.bg2 || (isLight ? '#FFFFFF' : '#161920'));
+    root.style.setProperty('--surface2', colors.bg3 || (isLight ? '#F0F0F0' : '#1E2128'));
+
+    // 边框：深色模式白色半透，浅色模式黑色半透
+    root.style.setProperty('--border', isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)');
+    root.style.setProperty('--border-active', 'rgba(' + blueR + ',' + blueG + ',' + blueB + ',' + (isLight ? '0.3)' : '0.4)'));
+  }
 
   // 应用主题（主入口）
   function applyTheme(themeId, mode) {
     currentThemeId = themeId || currentThemeId;
     currentMode = mode || currentMode;
 
-    const theme = findTheme(currentThemeId);
-    // 优先使用指定模式，没有则回退
-    const colors = theme[currentMode] || theme.dark;
+    var theme = findTheme(currentThemeId);
+    var colors = theme[currentMode] || theme.dark;
 
-    // 注入颜色变量（含 floatbar 相关）
-    const colorVars = {};
-    for (const [jsKey, cssName] of Object.entries(COLOR_MAP)) {
-      if (colors[jsKey] !== undefined) {
-        colorVars[jsKey] = colors[jsKey];
+    // 注入主题颜色变量
+    var colorVars = {};
+    for (var key in COLOR_MAP) {
+      if (!COLOR_MAP.hasOwnProperty(key)) continue;
+      if (colors[key] !== undefined) {
+        colorVars[key] = colors[key];
       }
     }
     setCSSVars(colorVars);
@@ -64,14 +116,16 @@
     }
 
     // 发光文字效果
-    if (theme.style.glowText && theme.style.glowText !== 'none') {
-      const root = document.documentElement;
-      root.style.setProperty('--glow-text', theme.style.glowText);
+    if (theme.style && theme.style.glowText && theme.style.glowText !== 'none') {
+      document.documentElement.style.setProperty('--glow-text', theme.style.glowText);
     } else {
-      document.documentElement.style.removeProperty('--glow-text');
+      try { document.documentElement.style.removeProperty('--glow-text'); } catch(_) {}
     }
 
-    // 通知主进程更新窗口背景色（避免白闪）
+    // 自动推导 adaptive 色值（blue/surface/border 等）
+    deriveAdaptiveColors(colors);
+
+    // 通知主进程更新窗口背景色
     try {
       window.api.send('update-bg-color', colors.bg);
     } catch(e) {}

@@ -18,11 +18,11 @@
   --red: #EF4444;
   --blue: #4F8EF7;
   --blue-dark: #2563EB;
-  --blue-glow: rgba(79,142,247,0.3);
+  --blue-glow: var(--blue-30);
   --surface: #161920;
   --surface2: #1E2128;
   --border: rgba(255,255,255,0.08);
-  --border-active: rgba(79,142,247,0.4);
+  --border-active: var(--blue-40);
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 24px;
@@ -33,7 +33,7 @@
   --gradient-blue: linear-gradient(135deg, #4F8EF7, #2563EB);
   --glow-text: none;
   --floatbar-bg: rgba(22,25,32,0.85);
-  --floatbar-border: rgba(79,142,247,0.25);
+  --floatbar-border: var(--blue-25);
   --floatbar-blur: blur(20px);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -135,7 +135,7 @@ html, body {
 }
 .recipient-box:focus-within {
   border-color: var(--border-active);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+  box-shadow: 0 0 0 3px var(--blue-10);
 }
 .recipient-icon { font-size: 18px; flex-shrink: 0; }
 .recipient-input {
@@ -171,7 +171,7 @@ html, body {
 }
 .sms-content:focus {
   border-color: var(--border-active);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+  box-shadow: 0 0 0 3px var(--blue-10);
 }
 .sms-content::placeholder { color: rgba(160,144,112,0.35); font-size: 13px; }
 
@@ -226,7 +226,7 @@ html, body {
   padding: 2px 6px;
   border-radius: 4px;
 }
-.tpl-manage-btn:hover { color: var(--blue); background: rgba(79,142,247,0.08); }
+.tpl-manage-btn:hover { color: var(--blue); background: var(--blue-08); }
 .tpl-list {
   display: flex;
   flex-wrap: nowrap;
@@ -248,7 +248,7 @@ html, body {
   white-space: nowrap;
   flex-shrink: 0;
 }
-.tpl-tag:hover { border-color: var(--border-active); color: var(--blue); background: rgba(79,142,247,0.07); }
+.tpl-tag:hover { border-color: var(--border-active); color: var(--blue); background: var(--blue-07); }
 .tpl-tag:active { transform: scale(0.95); }
 
 /* 发送按钮 */
@@ -269,11 +269,11 @@ html, body {
   justify-content: center;
   gap: 8px;
   flex-shrink: 0;
-  box-shadow: 0 2px 12px rgba(79,142,247,0.25);
+  box-shadow: 0 2px 12px var(--blue-25);
 }
 .send-btn:hover:not(:disabled) {
   filter: brightness(1.12);
-  box-shadow: 0 4px 20px rgba(79,142,247,0.45);
+  box-shadow: 0 4px 20px var(--blue-45);
   transform: translateY(-1px);
 }
 .send-btn:active:not(:disabled) { transform: translateY(0); }
@@ -365,11 +365,11 @@ html, body {
 .tpl-edit-item input::placeholder, .tpl-edit-item textarea::placeholder { color: var(--text2); font-size: 11px; }
 .tpl-edit-row { display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
 .tpl-edit-save {
-  background: rgba(79,142,247,0.15); border: 1px solid var(--blue);
+  background: var(--blue-15); border: 1px solid var(--blue);
   border-radius: var(--radius-sm); padding: 4px 12px;
   color: var(--blue); font-size: 11px; cursor: pointer; transition: all 0.15s;
 }
-.tpl-edit-save:hover { background: rgba(79,142,247,0.25); }
+.tpl-edit-save:hover { background: var(--blue-25); }
 .tpl-edit-del {
   background: none; border: 1px solid var(--red);
   border-radius: var(--radius-sm); padding: 4px 10px;
@@ -380,7 +380,7 @@ html, body {
 .tpl-add-btn {
   width: 100%;
   background: none;
-  border: 1px dashed rgba(79,142,247,0.4);
+  border: 1px dashed var(--blue-40);
   border-radius: var(--radius-md);
   padding: 7px;
   color: var(--blue);
@@ -388,7 +388,7 @@ html, body {
   cursor: pointer;
   transition: all 0.15s;
 }
-.tpl-add-btn:hover { border-color: var(--blue); background: rgba(79,142,247,0.07); }
+.tpl-add-btn:hover { border-color: var(--blue); background: var(--blue-07); }
 
 /* Toast */
 .toast {

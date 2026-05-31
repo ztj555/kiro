@@ -701,6 +701,7 @@ class DialService : Service() {
 
     /**
      * 根据 simSlot (0/1) 获取对应的 PhoneAccountHandle
+     * v7: 多厂商 ComponentName 兜底，确保 handle 不为 null
      */
     private fun getPhoneAccountHandle(simSlot: Int): PhoneAccountHandle? {
         return try {
@@ -713,13 +714,31 @@ class DialService : Service() {
             telecomManager.callCapablePhoneAccounts.forEach { handle ->
                 val acc = telecomManager.getPhoneAccount(handle)
                 if (acc != null && acc.hasCapabilities(android.telecom.PhoneAccount.CAPABILITY_CALL_PROVIDER)) {
-                    // 通过 extras 里的 subscription id 匹配
                     val accSubId = acc.extras?.getInt("subscriptionId", -1) ?: -1
                     if (accSubId == subscriptionId) return handle
                 }
             }
 
-            // 备选：直接用 ComponentName 构造（部分厂商有效）
+            // v7: 多厂商 ComponentName 兜底（按顺序尝试）
+            val componentNames = listOf(
+                ComponentName("com.android.phone", "com.android.services.telephony.TelephonyConnectionService"),  // AOSP/Google
+                ComponentName("com.android.incallui", "com.android.incallui.InCallServiceImpl"),                  // 三星部分
+                ComponentName("com.android.dialer", "com.android.dialer.telecom.TelecomUtil"),                   // Pixel
+                ComponentName("com.android.server.telecom", "com.android.server.telecom.components.TelecomConnectionService"), // 华为部分
+                ComponentName("com.android.phone", "com.android.phone.telecom.TelecomConnectionService")         // 小米部分
+            )
+            for (cn in componentNames) {
+                val handle = PhoneAccountHandle(cn, subscriptionId.toString())
+                try {
+                    val acc = telecomManager.getPhoneAccount(handle)
+                    if (acc != null && acc.hasCapabilities(android.telecom.PhoneAccount.CAPABILITY_CALL_PROVIDER)) {
+                        Log.d(TAG, "PhoneAccountHandle 兜底成功: ${cn.packageName}")
+                        return handle
+                    }
+                } catch (_: Exception) {}
+            }
+
+            // 最后的兜底：用默认 ComponentName
             PhoneAccountHandle(
                 ComponentName("com.android.phone", "com.android.services.telephony.TelephonyConnectionService"),
                 subscriptionId.toString()
@@ -883,6 +902,7 @@ class DialService : Service() {
 
     /**
      * 实际执行拨号（指定 SIM 卡槽）
+     * v7: 永不调用系统拨号器，handle为null时走多厂商兜底
      */
     private fun performDial(number: String, simSlot: Int) {
         try {
@@ -908,27 +928,14 @@ class DialService : Service() {
             } catch (e: SecurityException) {
                 Log.e(TAG, "TelecomManager无权限: ${e.message}")
             } catch (e: Exception) {
-                Log.e(TAG, "TelecomManager拨号失败: ${e.message}, 尝试ACTION_CALL")
+                Log.e(TAG, "TelecomManager拨号失败: ${e.message}")
             }
 
-            // fallback: ACTION_CALL（不带 SIM 指定）
-            try {
-                val intent = Intent(Intent.ACTION_CALL).apply {
-                    data = uri
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                startActivity(intent)
-                Log.d(TAG, "已拨号(ACTION_CALL fallback): $number")
-                _sendResultToPC(number, "ok")
-                callLogDb.insertDial(number, "ok", simSlot)
-                notifyNewDial(number)
-                copyNumberToClipboard(number)
-                showDialAnimation()
-            } catch (e: Exception) {
-                Log.e(TAG, "ACTION_CALL也失败: ${e.message}")
-                _sendResultToPC(number, "error")
-                callLogDb.insertDial(number, "error", simSlot)
-            }
+            // v7: 不再使用 ACTION_CALL（会弹系统拨号器+SIM选择）
+            // 直接报错，让用户检查权限或修复
+            Log.e(TAG, "拨号完全失败(卡${simSlot + 1}): handle=$handle")
+            _sendResultToPC(number, "error")
+            callLogDb.insertDial(number, "error", simSlot)
         } catch (e: Exception) {
             Log.e(TAG, "拨号异常: ${e.message}")
             _sendResultToPC(number, "error")
